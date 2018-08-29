@@ -1,0 +1,28 @@
+﻿  ch_calibration.cpp
+d:\myeye\mynt-eye-sdk-2\_install\include\mynteye\api.h(47): warning C4251: “mynteye::api::StreamData::img”: class“std::shared_ptr<mynteye::ImgData>”需要有 dll 接口由 struct“mynteye::api::StreamData”的客户端使用
+  d:\myeye\mynt-eye-sdk-2\_install\include\mynteye\api.h(47): note: 参见“std::shared_ptr<mynteye::ImgData>”的声明
+d:\myeye\mynt-eye-sdk-2\_install\include\mynteye\api.h(49): warning C4251: “mynteye::api::StreamData::frame”: class“cv::Mat”需要有 dll 接口由 struct“mynteye::api::StreamData”的客户端使用
+  d:\program files\opencv\opencv\build\include\opencv2\core\mat.hpp(771): note: 参见“cv::Mat”的声明
+d:\myeye\mynt-eye-sdk-2\_install\include\mynteye\api.h(51): warning C4251: “mynteye::api::StreamData::frame_raw”: class“std::shared_ptr<mynteye::device::Frame>”需要有 dll 接口由 struct“mynteye::api::StreamData”的客户端使用
+  d:\myeye\mynt-eye-sdk-2\_install\include\mynteye\api.h(51): note: 参见“std::shared_ptr<mynteye::device::Frame>”的声明
+d:\myeye\mynt-eye-sdk-2\_install\include\mynteye\api.h(68): warning C4251: “mynteye::api::MotionData::imu”: class“std::shared_ptr<mynteye::ImuData>”需要有 dll 接口由 struct“mynteye::api::MotionData”的客户端使用
+  d:\myeye\mynt-eye-sdk-2\_install\include\mynteye\api.h(68): note: 参见“std::shared_ptr<mynteye::ImuData>”的声明
+d:\myeye\mynt-eye-sdk-2\_install\include\mynteye\api.h(276): warning C4251: “mynteye::API::device_”: class“std::shared_ptr<mynteye::Device>”需要有 dll 接口由 class“mynteye::API”的客户端使用
+  d:\myeye\mynt-eye-sdk-2\_install\include\mynteye\api.h(91): note: 参见“std::shared_ptr<mynteye::Device>”的声明
+d:\myeye\mynt-eye-sdk-2\_install\include\mynteye\api.h(278): warning C4251: “mynteye::API::synthetic_”: class“std::unique_ptr<mynteye::Synthetic,std::default_delete<_Ty>>”需要有 dll 接口由 class“mynteye::API”的客户端使用
+          with
+          [
+              _Ty=mynteye::Synthetic
+          ]
+  d:\myeye\mynt-eye-sdk-2\_install\include\mynteye\api.h(278): note: 参见“std::unique_ptr<mynteye::Synthetic,std::default_delete<_Ty>>”的声明
+          with
+          [
+              _Ty=mynteye::Synthetic
+          ]
+e:\workspace_visualstudio\project2\project2\ch_calibration.cpp(238): warning C4305: “初始化”: 从“double”到“float”截断
+  正在生成代码
+  2 of 562 functions ( 0.4%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    2 functions had inline decision re-evaluated but remain unchanged
+  已完成代码的生成
+  Project2.vcxproj -> E:\WorkSpace_VisualStudio\Project2\x64\Release\Project2.exe
