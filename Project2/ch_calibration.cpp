@@ -36,6 +36,12 @@ int ch_findCorners(String* imageNames, int imageNum, Size boardSize, vector<vect
 
 static vector<vector<Point3f>> ch_calObjectCorners(Size boardSize, float squqreSize, vector<vector<Point2f>> imageCorners);
 
+void ch_DisparityTest();
+
+int ch_extractFront(Mat& I, Mat& bg, Mat& fg);
+
+int ch_extractFrontDepth(Mat& I, Mat& bg, Mat& fg);
+
 
 int calibrationTest()
 {
@@ -226,8 +232,9 @@ void ch_getPictures()
 int main()
 {
 //	ch_getPictures();
-	ch_stereoCalibration();
 //	ch_stereoTest();
+	//ch_stereoCalibration();
+	ch_DisparityTest();
 }
 
 #define STEREO_IMG_NUM 16
@@ -268,8 +275,11 @@ void ch_stereoCalibration()
 	cout << "E:\n" << E << endl;
 	cout << "F:\n" << F << endl;
 
+	Mat v1, v2;
+	v1 = imread("E:/WorkSpace_VisualStudio/stereo_data/left0.png");
+	v2 = imread("E:/WorkSpace_VisualStudio/stereo_data/right0.png");
 	//Test
-	Size img_size = v.size();
+	Size img_size = v1.size();
 	Mat R1, R2, P1, P2, Q;
 	Rect roi1, roi2;
 	stereoRectify(M1, D1, M2, D2, img_size, R, T, R1, R2, P1, P2, Q, CALIB_ZERO_DISPARITY, -1, img_size, &roi1, &roi2);
@@ -277,9 +287,16 @@ void ch_stereoCalibration()
 	initUndistortRectifyMap(M1, D1, R1, P1, img_size, CV_16SC2, map11, map12);
 	initUndistortRectifyMap(M2, D2, R2, P2, img_size, CV_16SC2, map21, map22);
 
-	Mat v1, v2;
-	v1 = imread("E:/WorkSpace_VisualStudio/stereo_data/left1.png");
-	v2 = imread("E:/WorkSpace_VisualStudio/stereo_data/right1.png");
+	cout << "M1\n" << M1 << endl;
+	cout << "D1\n" << D1 << endl;
+	cout << "R1\n" << R1 << endl;
+	cout << "P1\n" << P1 << endl;
+
+	cout << "M2\n" << M2 << endl;
+	cout << "D2\n" << D2 << endl;
+	cout << "R2\n" << R2 << endl;
+	cout << "P2\n" << P2 << endl;
+
 
 	Mat v1n, v2n;
 	remap(v1, v1n, map11, map12, INTER_LINEAR);
@@ -287,31 +304,253 @@ void ch_stereoCalibration()
 	cvtColor(v1n, v1, cv::COLOR_BGR2GRAY);
 	cvtColor(v2n, v2, cv::COLOR_BGR2GRAY);
 	//BM Setting
-	Ptr<StereoBM> bm = StereoBM::create(16, 9);
+	Ptr<StereoBM> bm = StereoBM::create();
 	int numberOfDisparities = 16;
 	bm->setROI1(roi1);
 	bm->setROI2(roi2);
-	bm->setPreFilterCap(31);
-	bm->setBlockSize(9);
+	bm->setPreFilterCap(13);
+	bm->setBlockSize(15);
 	bm->setMinDisparity(0);
 	bm->setNumDisparities(numberOfDisparities);
-	bm->setTextureThreshold(10);
-	bm->setUniquenessRatio(15);
-	bm->setSpeckleWindowSize(10);
+	bm->setTextureThreshold(100);
+	bm->setUniquenessRatio(1);
+	bm->setSpeckleWindowSize(100);
 	bm->setSpeckleRange(32);
-	bm->setDisp12MaxDiff(1);
+	bm->setDisp12MaxDiff(-1);
 
 	Mat disp, disp8;
-	v1n.convertTo(v1n, CV_8U);
-	v2n.convertTo(v2n, CV_8U);
-	bm->compute(v1n, v2n, disp);
-	//disp.convertTo(disp8, CV_8U, 255 / (numberOfDisparities*16.));
+	bm->compute(v1, v2, disp);
+	disp.convertTo(disp8, CV_8U, 255 / (numberOfDisparities*16.));
 	imshow("left", v1n);
 	imshow("right", v2n);
-	//imshow("disparity", disp8);
+	imshow("disparity", disp8);
 
 	waitKey();
 
+}
+
+void ch_DisparityTest()
+{
+	Mat M1 = (Mat_<double>(3, 3) << 338.6899642660518, 0, 380.0289664338098,
+		                            0, 315.2192780750657, 253.6931308995975,
+		                            0, 0, 1);
+	Mat D1 = (Mat_<double>(1, 5) << -0.07916527632857928, 0.07333645219513076, -0.0008544226477873728, -0.007070833381243551, -0.01812603803074503);
+
+	Mat M2 = (Mat_<double>(3, 3) << 332.6021962901069, 0, 396.6622229602757,
+		                            0, 310.3196499754532, 252.0462552331526,
+		                            0, 0, 1);
+	Mat D2 = (Mat_<double>(1, 5) << -0.05691884758867168, 0.05696515859141855, 0.000123448806155871, 0.004733596646795209, -0.01134657414639375);
+
+	Mat R = (Mat_<double>(3, 3) << 0.9986820112497146, 0.0009563777678408229, -0.05131594048431976,
+		                           -0.0006756327884441009, 0.9999847126831829, 0.00548797961614563,
+		                            0.05132040458297506, -0.005446075788788703, 0.9986673902415872);
+	Mat T = (Mat_<double>(3, 1) << -120.2950378067051,
+		                           0.1688889209308521,
+		                           -5.590046660537598);
+	Mat R1, R2, P1, P2, Q;
+	Rect roi1, roi2;
+	Size img_size(752,480);
+	stereoRectify(M1, D1, M2, D2, img_size, R, T, R1, R2, P1, P2, Q, CALIB_ZERO_DISPARITY, -1, img_size, &roi1, &roi2);
+	Mat map11, map12, map21, map22;
+	initUndistortRectifyMap(M1, D1, R1, P1, img_size, CV_16SC2, map11, map12);
+	initUndistortRectifyMap(M2, D2, R2, P2, img_size, CV_16SC2, map21, map22);
+
+	// Stereo BM
+	Ptr<StereoBM> bm = StereoBM::create(16, 9);
+	int numberOfDisparities = 64;// ((img_size.width / 8) + 15) & -16;
+	bm->setROI1(roi1);
+	bm->setROI2(roi2);
+	bm->setPreFilterCap(51);
+	bm->setBlockSize(15);
+	bm->setMinDisparity(-1);
+	bm->setNumDisparities(numberOfDisparities);
+	bm->setTextureThreshold(60);
+	bm->setUniquenessRatio(15);
+	bm->setSpeckleWindowSize(25);
+	bm->setSpeckleRange(20);
+	bm->setDisp12MaxDiff(10);
+
+	// Stereo SGBM
+	Ptr<StereoSGBM> sgbm = StereoSGBM::create(0, 16, 3);
+	int sgbmWinSize = 3;
+	sgbm->setPreFilterCap(30);
+	sgbm->setBlockSize(sgbmWinSize);
+	sgbm->setP1(8 * sgbmWinSize*sgbmWinSize);
+	sgbm->setP2(32 * sgbmWinSize*sgbmWinSize);
+	sgbm->setMinDisparity(0);
+	sgbm->setNumDisparities(numberOfDisparities);
+	sgbm->setUniquenessRatio(10);
+	sgbm->setSpeckleRange(32);
+	sgbm->setSpeckleWindowSize(10);
+	sgbm->setDisp12MaxDiff(1);
+	sgbm->setMode(StereoSGBM::MODE_HH);
+
+
+
+	// Camera
+	auto &&api = API::Create();
+
+	if (!api)
+	{
+		cout << "Can not open MYNTEYE" << endl;
+		return ;
+	}
+	api->EnableStreamData(Stream::LEFT_RECTIFIED);
+	api->EnableStreamData(Stream::RIGHT_RECTIFIED);
+	api->Start(Source::VIDEO_STREAMING);
+	int pics_cnt = 0;
+
+	Mat bg1, bg2, bgd;
+	int bg_cnt = 0;
+	int bg_cnt_num = 20;
+	bgd = Mat::zeros(img_size, CV_8U);
+	Mat sub = Mat::zeros(img_size, CV_8U);
+	Mat v1bg, v2bg;
+	Mat sub1 = Mat::zeros(img_size, CV_8U);
+	Mat sub2 = Mat::zeros(img_size, CV_8U);
+
+	while (true)
+	{
+		api->WaitForStreams();
+		auto &&left_data = api->GetStreamData(Stream::LEFT_RECTIFIED);
+		auto &&right_data = api->GetStreamData(Stream::RIGHT_RECTIFIED);
+		//auto &&depth_data = api->GetStreamData(Stream::DEPTH);
+		if (!left_data.frame.empty() && !right_data.frame.empty()) {
+			Mat img;
+			
+
+			Mat v1n, v2n;
+			Mat v1 = left_data.frame;
+			Mat v2 = right_data.frame;
+			remap(v1, v1n, map11, map12, INTER_LINEAR);
+			remap(v2, v2n, map21, map22, INTER_LINEAR);
+			Mat disp, disp8;
+			//bm->compute(v1n, v2n, disp);
+			sgbm->compute(v1n, v2n, disp);
+			disp.convertTo(disp8, CV_8U, 255 / (numberOfDisparities*16.));
+			hconcat(v1n, v2n, img);
+			imshow("camera", img);
+			imshow("Disparity", disp8);
+
+			
+			if (bg_cnt < bg_cnt_num)
+			{
+				if (bg_cnt == 0)
+				{
+					//bgd = disp8;
+					v1bg = v1n;
+					v2bg = v2n;
+				}
+				else
+				{
+					//bgd = (bgd + disp8) / 2;
+					v1bg = (v1bg + v1n) / 2;
+					v2bg = (v2bg + v2n) / 2;
+				}
+				bg_cnt++;		
+			}
+
+			ch_extractFront(v1n, v1bg, sub1);
+			ch_extractFront(v2n, v2bg, sub2);
+			hconcat(sub1, sub2, sub);
+			//ch_extractFront(disp8, bgd, sub);
+
+			imshow("Sub", sub);
+		}
+
+		char key = static_cast<char>(cv::waitKey(1));
+		if (key == 27 || key == 'q' || key == 'Q') {  // ESC/Q
+			break;
+		}
+
+	}
+	api->Stop(Source::VIDEO_STREAMING);
+	return ;
+	
+}
+
+int ch_extractFront(Mat& I, Mat& bg, Mat& fg)
+{
+	CV_Assert(I.depth() == CV_8U);
+	CV_Assert(bg.depth() == CV_8U);
+	CV_Assert(bg.depth() == CV_8U);
+
+	int channels = I.channels();
+
+	int nRows = I.rows;
+	int nCols = I.cols * channels;
+
+	if (I.isContinuous())
+	{
+		nCols *= nRows;
+		nRows = 1;
+	}
+
+	int i, j;
+	uchar* pi;
+	uchar* pb;
+	uchar* pf;
+	for (i = 0; i < nRows; i++)
+	{
+		pi = I.ptr<uchar>(i);
+		pb = bg.ptr<uchar>(i);
+		pf = fg.ptr<uchar>(i);
+		for (j = 0; j < nCols; j++)
+		{
+			if (pi[j] - pb[j] > 5 || pb[j] - pi[j] > 5)
+			{
+				pf[j] = pi[j];
+			}
+			else
+			{
+				pf[j] = 0;
+			}
+		}
+	}
+	return 0;
+}
+
+
+
+int ch_extractFrontDepth(Mat& I, Mat& bg, Mat& fg)
+{
+	CV_Assert(I.depth() == CV_8U);
+	CV_Assert(bg.depth() == CV_8U);
+	CV_Assert(bg.depth() == CV_8U);
+
+	int channels = I.channels();
+
+	int nRows = I.rows;
+	int nCols = I.cols * channels;
+
+	if (I.isContinuous())
+	{
+		nCols *= nRows;
+		nRows = 1;
+	}
+
+	int i, j;
+	uchar* pi;
+	uchar* pb;
+	uchar* pf;
+	for (i = 0; i < nRows; i++)
+	{
+		pi = I.ptr<uchar>(i);
+		pb = bg.ptr<uchar>(i);
+		pf = fg.ptr<uchar>(i);
+		for (j = 0; j < nCols; j++)
+		{
+			if (pi[j] - pb[j] > 30)
+			{
+				pf[j] = pi[j];
+			}
+			else
+			{
+				pf[j] = 0;
+			}
+		}
+	}
+	return 0;
 }
 
 int ch_findCorners(String* imageNames, int imageNum, Size boardSize, vector<vector<Point2f>>& imagePoints)
